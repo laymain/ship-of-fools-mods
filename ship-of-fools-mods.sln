@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParagonMod", "ParagonMod\ParagonMod.csproj", "{2836591C-F50C-4EEC-8A73-EB21E7A2073A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkipVideos", "SkipVideos\SkipVideos.csproj", "{765D71D5-B80D-4A2B-8E2D-F428153BA53A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2836591C-F50C-4EEC-8A73-EB21E7A2073A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2836591C-F50C-4EEC-8A73-EB21E7A2073A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2836591C-F50C-4EEC-8A73-EB21E7A2073A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2836591C-F50C-4EEC-8A73-EB21E7A2073A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{765D71D5-B80D-4A2B-8E2D-F428153BA53A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{765D71D5-B80D-4A2B-8E2D-F428153BA53A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{765D71D5-B80D-4A2B-8E2D-F428153BA53A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{765D71D5-B80D-4A2B-8E2D-F428153BA53A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
