@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>ParagonMod</AssemblyName>
     <Description>Paragon mod for Ship of Fools</Description>
-    <Version>0.0.1</Version>
+    <Version>0.0.2</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <RestoreAdditionalProjectSources>
@@ -21,11 +21,11 @@
     <PackageReference Include="BepInEx.PluginInfoProps" Version="2.*" />
     <PackageReference Include="UnityEngine.Modules" Version="2020.3.16" IncludeAssets="compile" />
   </ItemGroup>
-  
+
   <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.2" PrivateAssets="all" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <Reference Include="Core">
       <HintPath>..\lib\Core.dll</HintPath>
@@ -44,15 +44,15 @@
       <Private>False</Private>
     </Reference>
   </ItemGroup>
-  
+
   <ItemGroup>
     <Compile Remove="img\**" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <EmbeddedResource Remove="img\**" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <None Remove="img\**" />
   </ItemGroup>

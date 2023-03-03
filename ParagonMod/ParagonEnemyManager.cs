@@ -43,7 +43,7 @@ public class ParagonEnemyManager
                         ai.attackProbability = ApplyAttackProbabilityBonus(ai.attackProbability);
                         break;
                     case OwletAi ai:
-                        ai.chargeBoatMovement.defaultSpeed *= 1f + _state.Level / 40f;
+                        ai.chargeBoatMovement.defaultSpeed *= 1f + _state.Level / 30f;
                         break;
                     case OwlAi ai:
                         ai.attackDelay = ApplyMinAttackDelayBonus(ai.attackDelay);
@@ -55,7 +55,7 @@ public class ParagonEnemyManager
                         break;
                     case ScannerAi ai:
                         ai.anticipationTime  = ApplyAnticipationDurationBonus(ai.anticipationTime);
-                        ai.minimumAttackDelayTimer = new Timer(Mathf.Max(1f, ai.minimumAttackDelayTimer.Duration - _state.Level / 35f));
+                        ai.minimumAttackDelayTimer = new Timer(Mathf.Max(1f, ai.minimumAttackDelayTimer.Duration - _state.Level / 20f));
                         break;
                     case TentaclesHeadAi ai:
                         ai.anticipationTime  = ApplyAnticipationDurationBonus(ai.anticipationTime);
@@ -82,14 +82,14 @@ public class ParagonEnemyManager
         _enemyIds.Clear();
     }
 
-    private float ApplyMinAttackDelayBonus(float delay, float lowerBound = .5f, float ratio = 35f)
+    private float ApplyMinAttackDelayBonus(float delay, float lowerBound = .5f, float ratio = 20f)
     {
         var newValue = Mathf.Max(lowerBound, delay - _state.Level / ratio);
         Plugin.DefaultLogger.LogDebug($"\tMinAttackDelay: {delay} -> {newValue}");
         return newValue;
     }
 
-    private float ApplyMaxAttackDelayBonus(float delay, float lowerBound = .8f, float ratio = 35f)
+    private float ApplyMaxAttackDelayBonus(float delay, float lowerBound = .8f, float ratio = 20f)
     {
         var newValue = Mathf.Max(lowerBound, delay - _state.Level / ratio);
         Plugin.DefaultLogger.LogDebug($"\tMaxAttackDelay: {delay} -> {newValue}");
@@ -103,7 +103,7 @@ public class ParagonEnemyManager
         return newValue;
     }
 
-    private void ApplyMovementBonus(Movement movement, float ratio = 40f)
+    private void ApplyMovementBonus(Movement movement, float ratio = 20f)
     {
         var newValue = movement.defaultSpeed * (1f + _state.Level / ratio);
         Plugin.DefaultLogger.LogDebug($"\tMovementSpeed: {movement.defaultSpeed} -> {newValue}");
@@ -118,7 +118,7 @@ public class ParagonEnemyManager
         healthPoints.Base = newValue;
     }
 
-    private float ApplyAnticipationDurationBonus(float current, float lowerBound = .5f, float ratio = 35f)
+    private float ApplyAnticipationDurationBonus(float current, float lowerBound = .5f, float ratio = 20f)
     {
         var newValue = Mathf.Max(lowerBound, current - _state.Level / ratio);
         Plugin.DefaultLogger.LogDebug($"\tAnticipationDuration: {current} -> {newValue}");

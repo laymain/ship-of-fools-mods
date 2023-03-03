@@ -34,7 +34,7 @@ internal class Paragon : MonoBehaviour
             gameState.gameEvents.OnEnemySpawn += _enemyManager.OnEnemySpawn;
             gameState.gameEvents.OnEnemyDeath += _enemyManager.OnEnemyDeath;
             gameState.gameEvents.OnRunEnded += _enemyManager.OnRunEnded;
-            gameState.gameEvents.OnRunEnded += _state.OnRunEnded;
+            gameState.gameEvents.OnRunEnded += victory => _state.OnRunEnded(victory, gameState);
             _sceneController = FindObjectOfType<SceneController>();
             _sceneController.gameObject.AddComponent<ParagonUI>().Inject(_state);
         }

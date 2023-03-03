@@ -67,13 +67,22 @@ public class ParagonState
 
     #region Events
 
-    public void OnRunEnded(bool victory)
+    public void OnRunEnded(bool victory, GameState gameState)
     {
+        Plugin.DefaultLogger.LogDebug($"Run ended: victory = {victory}");
         if (victory)
         {
-            Unlocked = true;
+            if (!Unlocked)
+            {
+                Plugin.DefaultLogger.LogDebug("Paragon unlocked");
+                Unlocked = true;
+            }
             if (Enabled)
+            {
+                Plugin.DefaultLogger.LogDebug("Paragon level up");
                 Level++;
+                gameState.OnPersistentStateChanged.Emit(true);
+            }
         }
     }
 
