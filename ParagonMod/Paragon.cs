@@ -1,4 +1,5 @@
-﻿using ParagonMod.UI;
+﻿using System;
+using ParagonMod.UI;
 using Rewired;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -7,11 +8,14 @@ namespace ParagonMod;
 
 internal class Paragon : MonoBehaviour
 {
+    private const string GameSceneName = "GameScene";
+
     private readonly ParagonState _state = new();
     private readonly ParagonEnemyManager _enemyManager;
     private readonly ParagonSaveGameManager _saveGameManager;
     private readonly ParagonScoreManager _scoreManager;
 
+    private string _currentSceneName;
     private SceneController _sceneController;
 
     public Paragon()
@@ -28,22 +32,44 @@ internal class Paragon : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        if (scene.name == "GameScene")
+        _currentSceneName = scene.name;
+        if (_currentSceneName == GameSceneName)
         {
             var gameState = FindObjectOfType<GameState>();
             gameState.gameEvents.OnEnemySpawn += _enemyManager.OnEnemySpawn;
-            gameState.gameEvents.OnEnemyDeath += _enemyManager.OnEnemyDeath;
-            gameState.gameEvents.OnRunEnded += _enemyManager.OnRunEnded;
             gameState.gameEvents.OnRunEnded += victory => _state.OnRunEnded(victory, gameState);
             _sceneController = FindObjectOfType<SceneController>();
             _sceneController.gameObject.AddComponent<ParagonUI>().Inject(_state);
         }
+        else
+        {
+            _sceneController = null;
+        }
+    }
+
+    private bool CanEnableParagon()
+    {
+    #if DEBUG
+        return true;
+    #else
+        return _state.Unlocked && _currentSceneName == GameSceneName && _sceneController.State == SceneController.GameState.InHub;
+    #endif
     }
 
     private void Update()
     {
-        if (_state.Unlocked && ReInput.controllers.Keyboard.GetKeyDown(KeyCode.P) && _sceneController != null && _sceneController.State == SceneController.GameState.InHub)
-            _state.Enabled = !_state.Enabled;
+        if (CanEnableParagon())
+        {
+            if (ReInput.controllers.Keyboard.GetKeyDown(KeyCode.P))
+                _state.Enabled = !_state.Enabled;
+        }
+        #if DEBUG
+        if (ReInput.controllers.Keyboard.GetKeyDown(KeyCode.KeypadPlus))
+            _state.Level += ReInput.controllers.Keyboard.GetModifierKey(ModifierKey.Shift) ? 10 : 1;
+        else if (ReInput.controllers.Keyboard.GetKeyDown(KeyCode.KeypadMinus))
+            _state.Level = Math.Max(1, _state.Level - (ReInput.controllers.Keyboard.GetModifierKey(ModifierKey.Shift) ? 10 : 1));
+        else if (ReInput.controllers.Keyboard.GetKeyDown(KeyCode.KeypadEnter))
+            FindObjectOfType<GameState>()?.OnPersistentStateChanged.Emit(true);
+        #endif
     }
-
 }

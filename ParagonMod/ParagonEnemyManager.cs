@@ -5,7 +5,6 @@ namespace ParagonMod;
 
 public class ParagonEnemyManager
 {
-    private readonly ISet<int> _enemyIds = new HashSet<int>(); // OnEnemySpawn may be called multiple times for same enemy, we don't want to apply bonus multiple times
     private readonly ParagonState _state;
 
     public ParagonEnemyManager(ParagonState state)
@@ -15,12 +14,11 @@ public class ParagonEnemyManager
 
     public void OnEnemySpawn(Enemy enemy)
     {
-        if (_state.Enabled && !_enemyIds.Contains(enemy.GetInstanceID()))
+        if (_state.Enabled && !enemy.hideFlags.HasFlag(HideFlags.NotEditable))
         {
-            _enemyIds.Add(enemy.GetInstanceID());
-            if (enemy.name == "Tentacle(Clone)") return; // Tentacles are cloned from TentacleHead which already has bonuses applied
-            Plugin.DefaultLogger.LogDebug($"Applying bonuses to enemy {enemy.name}@{enemy.GetInstanceID()}");
-            if (enemy.HealthPoints != null)
+            enemy.hideFlags |= HideFlags.NotEditable;
+            Plugin.DefaultLogger.LogDebug($"Applying bonuses to enemy [{enemy.name}][&{enemy.GetInstanceID()}][@{enemy.enemyAi?.GetType()}][^{enemy.enemyAi?.Movement?.GetType()}]");
+            if (enemy.HealthPoints != null && enemy.name != "Tentacle(Clone)") // Tentacles are cloned from TentacleHead which already has bonuses applied
                 ApplyHealthPointsBonus(enemy.HealthPoints);
             if (enemy.enemyAi != null) {
                 ApplyMovementBonus(enemy.enemyAi.Movement);
@@ -42,11 +40,17 @@ public class ParagonEnemyManager
                         ai.maxDelayBeforeAttack = ApplyMaxAttackDelayBonus(ai.maxDelayBeforeAttack);
                         ai.attackProbability = ApplyAttackProbabilityBonus(ai.attackProbability);
                         break;
+                    case HatcherAi ai:
+                        ai.initialEggLayFrequency = Mathf.Max(6f, ai.initialEggLayFrequency - _state.Level / 10f);
+                        ai.minimumEggLayFrequency = Mathf.Max(2f, ai.minimumEggLayFrequency - _state.Level / 10f);
+                        break;
                     case OwletAi ai:
-                        ai.chargeBoatMovement.defaultSpeed *= 1f + _state.Level / 30f;
+                        ai.chargeBoatMovement.defaultSpeed *= 1f + _state.Level / 15f;
+                        ApplyRotationZonesBonus(ai.rotationZoneMovement.rotationZones);
                         break;
                     case OwlAi ai:
                         ai.attackDelay = ApplyMinAttackDelayBonus(ai.attackDelay);
+                        ApplyRotationZonesBonus(ai.rotationZones);
                         break;
                     case FlyerEnemyAi ai:
                         ai.anticipationDelay = ApplyAnticipationDurationBonus(ai.anticipationDelay);
@@ -54,42 +58,37 @@ public class ParagonEnemyManager
                         ai.maximumAttackDelay = ApplyMaxAttackDelayBonus( ai.maximumAttackDelay);
                         break;
                     case ScannerAi ai:
-                        ai.anticipationTime  = ApplyAnticipationDurationBonus(ai.anticipationTime);
-                        ai.minimumAttackDelayTimer = new Timer(Mathf.Max(1f, ai.minimumAttackDelayTimer.Duration - _state.Level / 20f));
+                        ai.anticipationTime = ApplyAnticipationDurationBonus(ai.anticipationTime);
+                        ai.minimumAttackDelayTimer = new Timer(Mathf.Max(1f, ai.minimumAttackDelayTimer.Duration - _state.Level / 15f));
+                        break;
+                    case TentacleAi ai:
+                        ai.anticipationTime = ApplyAnticipationDurationBonus(ai.anticipationTime);
+                        ai.anticipationTimer = new Timer(ai.anticipationTime);
                         break;
                     case TentaclesHeadAi ai:
                         ai.anticipationTime  = ApplyAnticipationDurationBonus(ai.anticipationTime);
-                        ai.EggAmountMultiplier = Mathf.Max(10f, ai.EggAmountMultiplier + _state.Level / 10f);
                         break;
                     case ClawsHeadAi ai:
                         ai.anticipationDuration = ApplyAnticipationDurationBonus(ai.anticipationDuration);
                         ai.minimumAttackDelay = ApplyMinAttackDelayBonus(ai.minimumAttackDelay, 2f, 10f);
                         ai.maximumAttackDelay = ApplyMaxAttackDelayBonus(ai.maximumAttackDelay, 4f, 10f);
                         break;
+                    default:
+                        Plugin.DefaultLogger.LogDebug($"Unknown enemy ai: {enemy.enemyAi}");
+                        break;
                 }
             }
         }
     }
 
-    public void OnEnemyDeath(Enemy enemy)
-    {
-        if (_state.Enabled)
-            _enemyIds.Remove(enemy.GetInstanceID());
-    }
-
-    public void OnRunEnded(bool victory)
-    {
-        _enemyIds.Clear();
-    }
-
-    private float ApplyMinAttackDelayBonus(float delay, float lowerBound = .5f, float ratio = 20f)
+    private float ApplyMinAttackDelayBonus(float delay, float lowerBound = .5f, float ratio = 15f)
     {
         var newValue = Mathf.Max(lowerBound, delay - _state.Level / ratio);
         Plugin.DefaultLogger.LogDebug($"\tMinAttackDelay: {delay} -> {newValue}");
         return newValue;
     }
 
-    private float ApplyMaxAttackDelayBonus(float delay, float lowerBound = .8f, float ratio = 20f)
+    private float ApplyMaxAttackDelayBonus(float delay, float lowerBound = .8f, float ratio = 15f)
     {
         var newValue = Mathf.Max(lowerBound, delay - _state.Level / ratio);
         Plugin.DefaultLogger.LogDebug($"\tMaxAttackDelay: {delay} -> {newValue}");
@@ -103,14 +102,34 @@ public class ParagonEnemyManager
         return newValue;
     }
 
-    private void ApplyMovementBonus(Movement movement, float ratio = 20f)
+    private void ApplyMovementBonus(Movement movement, float ratio = 15f)
     {
-        var newValue = movement.defaultSpeed * (1f + _state.Level / ratio);
-        Plugin.DefaultLogger.LogDebug($"\tMovementSpeed: {movement.defaultSpeed} -> {newValue}");
-        movement.defaultSpeed = newValue;
+        if (movement != null)
+        {
+            var newValue = movement.defaultSpeed * (1f + _state.Level / ratio);
+            Plugin.DefaultLogger.LogDebug($"\tMovementSpeed: {movement.defaultSpeed} -> {newValue}");
+            movement.defaultSpeed = newValue;
+            movement.speed = newValue;
+            if (movement is RotationZonesMovement rotationZonesMovement)
+                ApplyRotationZonesBonus(rotationZonesMovement.rotationZones, ratio);
+        }
     }
 
-    private void ApplyHealthPointsBonus(HealthPoints healthPoints, float ratio = 50f)
+    private void ApplyRotationZonesBonus(IEnumerable<RotationZone> rotationZones, float ratio = 15f)
+    {
+        foreach (RotationZone zone in rotationZones)
+        {
+            if (!zone.hideFlags.HasFlag(HideFlags.NotEditable))
+            {
+                var newValue = zone.angularVelocity * (1 + _state.Level / ratio);
+                Plugin.DefaultLogger.LogDebug($"\t{zone.name}: {zone.angularVelocity} -> {newValue}");
+                zone.angularVelocity = newValue;
+                zone.hideFlags |= HideFlags.NotEditable;
+            }
+        }
+    }
+
+    private void ApplyHealthPointsBonus(HealthPoints healthPoints, float ratio = 30f)
     {
         var newValue = healthPoints.Maximum * (1f + _state.Level / ratio);
         Plugin.DefaultLogger.LogDebug($"\tHealth: {healthPoints.Maximum} -> {newValue}");
@@ -118,7 +137,7 @@ public class ParagonEnemyManager
         healthPoints.Base = newValue;
     }
 
-    private float ApplyAnticipationDurationBonus(float current, float lowerBound = .5f, float ratio = 20f)
+    private float ApplyAnticipationDurationBonus(float current, float lowerBound = .5f, float ratio = 15f)
     {
         var newValue = Mathf.Max(lowerBound, current - _state.Level / ratio);
         Plugin.DefaultLogger.LogDebug($"\tAnticipationDuration: {current} -> {newValue}");
