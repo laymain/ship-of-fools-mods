@@ -18,8 +18,7 @@ public class ParagonEnemyManager
         {
             enemy.hideFlags |= HideFlags.NotEditable;
             Plugin.DefaultLogger.LogDebug($"Applying bonuses to enemy [{enemy.name}][&{enemy.GetInstanceID()}][@{enemy.enemyAi?.GetType()}][^{enemy.enemyAi?.Movement?.GetType()}]");
-            if (enemy.HealthPoints != null && enemy.name != "Tentacle(Clone)") // Tentacles are cloned from TentacleHead which already has bonuses applied
-                ApplyHealthPointsBonus(enemy.HealthPoints);
+            ApplyHealthPointsBonus(enemy);
             if (enemy.enemyAi != null) {
                 ApplyMovementBonus(enemy.enemyAi.Movement);
                 switch (enemy.enemyAi)
@@ -40,6 +39,8 @@ public class ParagonEnemyManager
                         ai.maxDelayBeforeAttack = ApplyMaxAttackDelayBonus(ai.maxDelayBeforeAttack);
                         ai.attackProbability = ApplyAttackProbabilityBonus(ai.attackProbability);
                         break;
+                    case PuffyAi ai:
+                        break;
                     case HatcherAi ai:
                         ai.initialEggLayFrequency = Mathf.Max(6f, ai.initialEggLayFrequency - _state.Level / 10f);
                         ai.minimumEggLayFrequency = Mathf.Max(2f, ai.minimumEggLayFrequency - _state.Level / 10f);
@@ -51,6 +52,10 @@ public class ParagonEnemyManager
                     case OwlAi ai:
                         ai.attackDelay = ApplyMinAttackDelayBonus(ai.attackDelay);
                         ApplyRotationZonesBonus(ai.rotationZones);
+                        break;
+                    case PeckerAi ai:
+                        ai.anticipationTime = ApplyAnticipationDurationBonus(ai.anticipationTime);
+                        ai.anticipationTimer = new Timer(ai.anticipationTime);
                         break;
                     case FlyerEnemyAi ai:
                         ai.anticipationDelay = ApplyAnticipationDurationBonus(ai.anticipationDelay);
@@ -67,6 +72,14 @@ public class ParagonEnemyManager
                         break;
                     case TentaclesHeadAi ai:
                         ai.anticipationTime  = ApplyAnticipationDurationBonus(ai.anticipationTime);
+                        break;
+                    case SerpentExtremityAi ai:
+                        ai.anticipationTime = ApplyAnticipationDurationBonus(ai.anticipationTime);
+                        ai.anticipationTimer = new Timer(ai.anticipationTime);
+                        ai.attackTime = ApplyAttackTimeBonus(ai.attackTime);
+                        ai.attackTimer = new Timer(ai.attackTime);
+                        break;
+                    case SerpentLoopAi ai:
                         break;
                     case ClawsHeadAi ai:
                         ai.anticipationDuration = ApplyAnticipationDurationBonus(ai.anticipationDuration);
@@ -102,6 +115,13 @@ public class ParagonEnemyManager
         return newValue;
     }
 
+    private float ApplyAttackTimeBonus(float current)
+    {
+        var newValue = current + _state.Level / 10f;
+        Plugin.DefaultLogger.LogDebug($"\tAttackTime: {current} -> {newValue}");
+        return newValue;
+    }
+
     private void ApplyMovementBonus(Movement movement, float ratio = 15f)
     {
         if (movement != null)
@@ -129,12 +149,22 @@ public class ParagonEnemyManager
         }
     }
 
-    private void ApplyHealthPointsBonus(HealthPoints healthPoints, float ratio = 30f)
+    private void ApplyHealthPointsBonus(Enemy enemy, float ratio = 30f)
     {
-        var newValue = healthPoints.Maximum * (1f + _state.Level / ratio);
-        Plugin.DefaultLogger.LogDebug($"\tHealth: {healthPoints.Maximum} -> {newValue}");
-        healthPoints.Maximum = newValue;
-        healthPoints.Base = newValue;
+        if (enemy.HealthPoints != null)
+        {
+            switch (enemy.name)
+            {
+                case "Tentacle(Clone)": // Tentacles are cloned from TentacleHead...
+                case "SerpentTail": // SerpentTails are cloned from SerpentHead
+                case "SerpentLoop(Clone)": // SerpentLoop are cloned from SerpentTail
+                    return; // ...which already has health bonuses applied
+            }
+            var newValue = enemy.HealthPoints.Maximum * (1f + _state.Level / ratio);
+            Plugin.DefaultLogger.LogDebug($"\tHealth: {enemy.HealthPoints.Maximum} -> {newValue}");
+            enemy.HealthPoints.Maximum = newValue;
+            enemy.HealthPoints.Base = newValue;
+        }
     }
 
     private float ApplyAnticipationDurationBonus(float current, float lowerBound = .5f, float ratio = 15f)
