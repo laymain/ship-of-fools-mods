@@ -23,42 +23,70 @@ public class ParagonState
 
     #endregion
 
-    #region Enabled
+    #region RunType
 
-    public delegate void OnEnableStateChangedDelegate(bool enabled);
-    public event OnEnableStateChangedDelegate OnEnableStateChanged;
-
-    private bool _enabled;
-    public bool Enabled
+    public enum RunType
     {
-        get => _enabled;
+        DEFAULT,
+        PARAGON,
+        ENDLESS
+    }
+
+    public delegate void OnRunTypeChangedDelegate(RunType runType);
+    public event OnRunTypeChangedDelegate OnRunTypeChanged;
+
+    private RunType _currentRunType = RunType.DEFAULT;
+    public RunType CurrentRunType
+    {
+        get => _currentRunType;
         set
         {
-            if (_enabled != value)
+            if (_currentRunType != value)
             {
-                _enabled = value;
-                OnEnableStateChanged?.Invoke(_enabled);
+                _currentRunType = value;
+                OnRunTypeChanged?.Invoke(_currentRunType);
             }
         }
     }
 
     #endregion
 
-    #region Level
+    #region Paragon
 
-    public delegate void OnLevelChangedDelegate(int level);
-    public event OnLevelChangedDelegate OnLevelChanged;
+    public delegate void OnParagonLevelChangedDelegate(int level);
+    public event OnParagonLevelChangedDelegate OnParagonLevelChanged;
 
-    private int _level;
-    public int Level
+    private int _paragonLevel = 1;
+    public int ParagonLevel
     {
-        get => _level;
+        get => _paragonLevel;
         set
         {
-            if (_level != value)
+            if (_paragonLevel != value)
             {
-                _level = value;
-                OnLevelChanged?.Invoke(_level);
+                _paragonLevel = value;
+                OnParagonLevelChanged?.Invoke(_paragonLevel);
+            }
+        }
+    }
+
+    #endregion
+
+    #region Endless
+
+    public delegate void OnEndlessLevelChangedDelegate(int level);
+    public event OnEndlessLevelChangedDelegate OnEndlessLevelChanged;
+
+    private int _endlessLevel = 0;
+    public int EndlessLevel
+    {
+        get => _endlessLevel;
+        set
+        {
+            if (_endlessLevel != value)
+            {
+                _endlessLevel = value;
+                OnEndlessLevelChanged?.Invoke(_endlessLevel);
             }
         }
     }
@@ -70,6 +98,8 @@ public class ParagonState
     public void OnRunEnded(bool victory, GameState gameState)
     {
         Plugin.DefaultLogger.LogDebug($"Run ended: victory = {victory}");
+        if (CurrentRunType == RunType.ENDLESS)
+            EndlessLevel = 0;
         if (victory)
         {
             if (!Unlocked)
@@ -77,15 +107,23 @@ public class ParagonState
                 Plugin.DefaultLogger.LogDebug("Paragon unlocked");
                 Unlocked = true;
             }
-            if (Enabled)
+            if (CurrentRunType == RunType.PARAGON)
             {
-                Plugin.DefaultLogger.LogDebug("Paragon level up");
-                Level++;
-                gameState.OnPersistentStateChanged.Emit(true);
+                    Plugin.DefaultLogger.LogDebug("Paragon level up");
+                    ParagonLevel++;
+                    gameState.OnPersistentStateChanged.Emit(true);
             }
         }
     }
 
-    #endregion
+    public void OnEncounterCompleted()
+    {
+        if (CurrentRunType == RunType.ENDLESS)
+        {
+            Plugin.DefaultLogger.LogDebug("Endless level up");
+            EndlessLevel++;
+        }
+    }
 
+    #endregion
 }

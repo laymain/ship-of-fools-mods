@@ -1,13 +1,14 @@
 ## Paragon
 
-This mod extends game replayability once you have defeated the end boss by adding a Paragon level progression.\
-It is slightly inspired by Diablo 3 Paragon system.
+This mod extends game replayability once you have defeated the end boss by adding:
+* Paragon level progression, which is slightly inspired by Diablo 3 Paragon system.
+* Endless run mode
 
 ---
 
-### Features
+### Paragon
 
-> Paragon mod allows you to play "Paragon runs" where game difficulty is proportionally increased\
+> Paragon mode allows you to play "Paragon runs" where game difficulty is proportionally increased\
 > in relation to your Paragon level. You will be rewarded by a score bonus at the end of the run.
 
 > Paragon is unlocked when you have successfully completed the game once.\
@@ -22,6 +23,13 @@ It is slightly inspired by Diablo 3 Paragon system.
 > Paragon level progression is stored in your savegame, so it will remain upon game sessions.
 
 > You will gain a Paragon level after each successfully completed run.
+
+### Endless
+
+> Endless mode allows you to play and endless and challenging run where difficulty in increased.
+
+> Endless mode is disabled by default which means that if you want switch to an "Endless run"\
+> you will have to activate or deactivate it by pressing `[L]` on your keyboard.
 
 ---
 
