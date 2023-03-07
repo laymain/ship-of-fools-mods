@@ -26,7 +26,7 @@ This mod extends game replayability once you have defeated the end boss by addin
 
 ### Endless
 
-> Endless mode allows you to play and endless and challenging run where difficulty in increased.
+> Endless mode allows you to play an endless and challenging run where difficulty in increased.
 
 > Endless mode is disabled by default which means that if you want switch to an "Endless run"\
 > you will have to activate or deactivate it by pressing `[L]` on your keyboard.
