@@ -1,11 +1,17 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using TMPro;
 using UnityEngine;
+using UnityEngine.Localization.Components;
+using UnityEngine.UI;
 
 namespace ParagonMod;
 
 public class ParagonUI : MonoBehaviour
 {
+    private static readonly Options.OptionsSettings DifficultyOptionsSettings = (Options.OptionsSettings)"DifficultyChooser.Difficulty".GetHashCode();
+
     private readonly Lazy<Sprite> _paragonSprite = new(() => Resources.FindObjectsOfTypeAll<Sprite>().FirstOrDefault(sprite => sprite.name == "P-Key-Filled@8x"));
     private readonly Lazy<Sprite> _endlessSprite = new(() => Resources.FindObjectsOfTypeAll<Sprite>().FirstOrDefault(sprite => sprite.name == "E-Key-Filled@8x"));
 
@@ -114,5 +120,56 @@ public class ParagonUI : MonoBehaviour
     {
         _paragonLevelText.SetColor(_state.CurrentRunType == ParagonState.RunType.PARAGON ? 1 : 0);
         _endlessLevelText.SetColor(_state.CurrentRunType == ParagonState.RunType.ENDLESS ? 1 : 0);
+    }
+
+    public static void InjectGeneralOptions(ParagonState state, Options options)
+    {
+        Plugin.DefaultLogger.LogDebug("Injecting difficulty option in menu...");
+        try
+        {
+            GameObject sliderDifficultyGameObject = Instantiate(options.sliderLanguage.gameObject, options.sliderLanguage.transform.parent);
+            sliderDifficultyGameObject.name = "Difficulty";
+            sliderDifficultyGameObject.transform.localPosition = new Vector3(0, 50f, 0f);
+            sliderDifficultyGameObject.transform.rotation = options.sliderLanguage.transform.rotation;
+            sliderDifficultyGameObject.transform.localScale = options.sliderLanguage.transform.localScale;
+            sliderDifficultyGameObject.transform.SetAsFirstSibling();
+
+            Transform sliderTitleDifficulty = sliderDifficultyGameObject.transform.Find("Slider Title");
+            Destroy(sliderTitleDifficulty.GetComponent<LocalizeStringEvent>()); // Disable translated string
+            var titleDifficulty = sliderTitleDifficulty.GetComponentInChildren<TextMeshProUGUI>();
+            titleDifficulty.SetText("Difficulty");
+
+            var settingsSlider = sliderDifficultyGameObject.GetComponent<OptionsSettingsSlider>();
+            settingsSlider.setting = DifficultyOptionsSettings;
+            settingsSlider.settingsList = new List<string>(Enum.GetNames(typeof(ParagonDifficulty)));
+            settingsSlider.Slider.maxValue = settingsSlider.settingsList.Count - 1;
+            settingsSlider.SetSliderValue((float)state.CurrentDifficulty);
+            settingsSlider.SliderUpdated();
+            settingsSlider.Slider.onValueChanged.AddListener(value =>
+            {
+                state.CurrentDifficulty = (ParagonDifficulty)Mathf.RoundToInt(value);
+                Plugin.DefaultLogger.LogDebug($"Difficulty set to {state.CurrentDifficulty}");
+            });
+
+            var selectableResolution = options.sliderResolution.GetComponent<Selectable>();
+            var selectableDifficulty = options.sliderLanguage.GetComponent<Selectable>();
+            Navigation navigationResolution = selectableResolution.navigation;
+            selectableDifficulty.navigation = new Navigation
+            {
+                mode = navigationResolution.mode,
+                selectOnUp = navigationResolution.selectOnUp,
+                selectOnDown = selectableResolution
+            };
+            selectableResolution.navigation = new Navigation
+            {
+                mode = navigationResolution.mode,
+                selectOnUp = selectableDifficulty,
+                selectOnDown = navigationResolution.selectOnDown
+            };
+        }
+        catch (Exception ex)
+        {
+            Plugin.DefaultLogger.LogError(ex);
+        }
     }
 }

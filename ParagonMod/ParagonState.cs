@@ -5,9 +5,11 @@ public class ParagonState
     #region Unlocked
 
     public delegate void OnUnlockStateChangedDelegate(bool unlocked);
+
     public event OnUnlockStateChangedDelegate OnUnlockStateChanged;
 
     private bool _unlocked;
+
     public bool Unlocked
     {
         get => _unlocked;
@@ -33,9 +35,11 @@ public class ParagonState
     }
 
     public delegate void OnRunTypeChangedDelegate(RunType runType);
+
     public event OnRunTypeChangedDelegate OnRunTypeChanged;
 
     private RunType _currentRunType = RunType.DEFAULT;
+
     public RunType CurrentRunType
     {
         get => _currentRunType;
@@ -54,9 +58,11 @@ public class ParagonState
     #region Paragon
 
     public delegate void OnParagonLevelChangedDelegate(int level);
+
     public event OnParagonLevelChangedDelegate OnParagonLevelChanged;
 
     private int _paragonLevel = 1;
+
     public int ParagonLevel
     {
         get => _paragonLevel;
@@ -72,12 +78,27 @@ public class ParagonState
 
     #endregion
 
+    #region Difficulty
+
+    public int DifficultyModifier => _currentRunType switch
+    {
+        RunType.PARAGON => _paragonLevel,
+        RunType.ENDLESS => _endlessLevel,
+        _ => 0
+    } + CurrentDifficulty.GetDifficultyModifier();
+
+    public ParagonDifficulty CurrentDifficulty { get; set; } = ParagonDifficulty.DEFAULT;
+
+    #endregion
+
     #region Endless
 
     public delegate void OnEndlessLevelChangedDelegate(int level);
+
     public event OnEndlessLevelChangedDelegate OnEndlessLevelChanged;
 
     private int _endlessLevel = 0;
+
     public int EndlessLevel
     {
         get => _endlessLevel;
@@ -107,11 +128,12 @@ public class ParagonState
                 Plugin.DefaultLogger.LogDebug("Paragon unlocked");
                 Unlocked = true;
             }
+
             if (CurrentRunType == RunType.PARAGON)
             {
-                    Plugin.DefaultLogger.LogDebug("Paragon level up");
-                    ParagonLevel++;
-                    gameState.OnPersistentStateChanged.Emit(true);
+                Plugin.DefaultLogger.LogDebug("Paragon level up");
+                ParagonLevel++;
+                gameState.OnPersistentStateChanged.Emit(true);
             }
         }
     }

@@ -1,8 +1,21 @@
 ## Paragon
 
 This mod extends game replayability once you have defeated the end boss by adding:
+* Difficulty settings
 * Paragon level progression, which is slightly inspired by Diablo 3 Paragon system.
 * Endless run mode
+
+---
+
+### Difficulty
+
+> Game difficulty can be changed in the `Options > General` settings among
+> * DEFAULT
+> * MEDIUM
+> * HARD
+> * FOOLS
+> * ABYSMAL\
+> ![Paragon difficulty](./img/Paragon.Difficulty.png "Paragon difficulty")
 
 ---
 

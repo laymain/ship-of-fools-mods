@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>ParagonMod</AssemblyName>
     <Description>Paragon mod for Ship of Fools</Description>
-    <Version>0.0.6</Version>
+    <Version>0.0.7</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <RestoreAdditionalProjectSources>
@@ -36,12 +36,24 @@
       <HintPath>..\lib\Rewired_Core.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Unity.Localization">
+      <HintPath>..\lib\Unity.Localization.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Unity.Netcode.Runtime">
       <HintPath>..\lib\Unity.Netcode.Runtime.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>..\lib\Unity.TextMeshPro.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="Unity.VectorGraphics">
       <HintPath>..\lib\Unity.VectorGraphics.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>..\lib\UnityEngine.UI.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

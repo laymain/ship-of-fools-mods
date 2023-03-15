@@ -1,4 +1,5 @@
 ﻿using System;
+using ParagonMod.Patch;
 using Rewired;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -7,8 +8,6 @@ namespace ParagonMod;
 
 internal class Paragon : MonoBehaviour
 {
-    private const string GameSceneName = "GameScene";
-
     private readonly ParagonState _state = new();
     private readonly ParagonEnemyManager _enemyManager;
     private readonly ParagonSaveGameManager _saveGameManager;
@@ -31,12 +30,13 @@ internal class Paragon : MonoBehaviour
     private void Awake()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
+        ExtendedOptions.OnOptionsStarted += options => ParagonUI.InjectGeneralOptions(_state, options);
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         _currentSceneName = scene.name;
-        if (_currentSceneName == GameSceneName)
+        if (_currentSceneName == SceneUtils.GameScene || _currentSceneName == SceneUtils.TestScene)
         {
             var gameState = FindObjectOfType<GameState>();
             gameState.gameEvents.OnEnemySpawn += _enemyManager.OnEnemySpawn;
@@ -60,7 +60,7 @@ internal class Paragon : MonoBehaviour
     #if DEBUG
         return true;
     #else
-        return _state.Unlocked && _currentSceneName == GameSceneName && _sceneController.State == SceneController.GameState.InHub;
+        return _state.Unlocked && _currentSceneName == SceneUtils.GameScene && _sceneController.State == SceneController.GameState.InHub;
     #endif
     }
 

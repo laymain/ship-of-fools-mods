@@ -70,7 +70,11 @@ public class ParagonMapManager
     {
         return (MapNode.MapNodeSubtype)OneOf(
             _currentSector.islandConfigurations
-                .Where(configuration => configuration.type != MapNode.IslandNodeSubtype.Junkyard && configuration.type != MapNode.IslandNodeSubtype.Curse)
+                .Where(configuration =>
+                    configuration.type != MapNode.IslandNodeSubtype.Junkyard
+                    && configuration.type != MapNode.IslandNodeSubtype.Curse
+                    && configuration.type != MapNode.IslandNodeSubtype.EntranceScenery
+                    && configuration.type != MapNode.IslandNodeSubtype.NpcUnlock)
                 .Select(configuration => configuration.type)
                 .ToArray()
         );
@@ -137,7 +141,7 @@ public class ParagonMapManager
     {
         if (_state.CurrentRunType != ParagonState.RunType.ENDLESS)
             return null;
-        var difficultyLevel = UnityEngine.Random.Range(1, 20);
+        var difficultyLevel = _state.CurrentDifficulty.GetDifficultyLevel();
         if (node.LinkedEncounterName != null)
             return encounterManager.GetSpecificEncounterByName(node.LinkedEncounterName, difficultyLevel);
         switch (node.Subtype)
