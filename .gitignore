@@ -4,3 +4,4 @@ obj/
 *.iml
 *.user
 .idea
+UserPaths.props

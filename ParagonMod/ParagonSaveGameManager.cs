@@ -1,4 +1,5 @@
-﻿using ParagonMod.Patch;
+﻿using Il2Cpp;
+using ParagonMod.Patch;
 
 namespace ParagonMod;
 
@@ -23,7 +24,7 @@ public class ParagonSaveGameManager
                 _state.ParagonLevel = data.Unlocked[ParagonLevelKey];
             _state.Unlocked = ((Progression)data.Progression).HasProgressed(Progression.EyeOfTheStormDefeated);
         }
-        Plugin.DefaultLogger.LogDebug("GameData loaded");
+        Mod.DefaultLogger.Msg("GameData loaded");
     }
 
     private void Save(GameData data)
@@ -34,6 +35,6 @@ public class ParagonSaveGameManager
                 data.Unlocked[ParagonLevelKey] = _state.ParagonLevel;
         }
 
-        Plugin.DefaultLogger.LogDebug("GameData saved");
+        Mod.DefaultLogger.Msg("GameData saved");
     }
 }

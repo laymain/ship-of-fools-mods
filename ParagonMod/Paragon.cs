@@ -1,14 +1,16 @@
-﻿using System;
+﻿using Il2Cpp;
+using Il2CppInterop.Runtime.Injection;
+using MelonLoader;
 using ParagonMod.Patch;
-using Rewired;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace ParagonMod;
 
+[RegisterTypeInIl2Cpp]
 internal class Paragon : MonoBehaviour
 {
-    private readonly ParagonState _state = new();
+    public static readonly ParagonState _state = new();
     private readonly ParagonEnemyManager _enemyManager;
     private readonly ParagonSaveGameManager _saveGameManager;
     private readonly ParagonScoreManager _scoreManager;
@@ -19,8 +21,17 @@ internal class Paragon : MonoBehaviour
 
     private WeakReference<GameState> _gameState = new(null);
 
-    public Paragon()
+    public Paragon(IntPtr ptr) : base(ptr)
     {
+        _saveGameManager = new ParagonSaveGameManager(_state);
+        _enemyManager = new ParagonEnemyManager(_state);
+        _scoreManager = new ParagonScoreManager(_state);
+        _mapManager = new ParagonMapManager(_state, _gameState);
+    }
+
+    public Paragon() : base(ClassInjector.DerivedConstructorPointer<Paragon>())
+    {
+        ClassInjector.DerivedConstructorBody(this);
         _saveGameManager = new ParagonSaveGameManager(_state);
         _enemyManager = new ParagonEnemyManager(_state);
         _scoreManager = new ParagonScoreManager(_state);
@@ -29,7 +40,7 @@ internal class Paragon : MonoBehaviour
 
     private void Awake()
     {
-        SceneManager.sceneLoaded += OnSceneLoaded;
+        SceneManager.add_sceneLoaded(new Action<Scene, LoadSceneMode>(OnSceneLoaded));
         ExtendedOptions.OnOptionsStarted += options => ParagonUI.InjectGeneralOptions(_state, options);
     }
 
@@ -39,13 +50,13 @@ internal class Paragon : MonoBehaviour
         if (_currentSceneName == SceneUtils.GameScene || _currentSceneName == SceneUtils.TestScene)
         {
             var gameState = FindObjectOfType<GameState>();
-            gameState.gameEvents.OnEnemySpawn += _enemyManager.OnEnemySpawn;
-            gameState.gameEvents.OnRunEnded += victory => _state.OnRunEnded(victory, gameState);
-            gameState.gameEvents.OnEncounterCompleted += _state.OnEncounterCompleted;
-            gameState.gameEvents.OnSectorChanged += _mapManager.OnSectorChanged;
-            gameState.gameEvents.OnRunEnded += _ => _mapManager.Reset();
+            gameState.gameEvents.add_OnEnemySpawn(new Action<Enemy>(_enemyManager.OnEnemySpawn));
+            gameState.gameEvents.add_OnRunEnded(new Action<bool>(victory => _state.OnRunEnded(victory, gameState)));
+            gameState.gameEvents.add_OnEncounterCompleted(new Action(_state.OnEncounterCompleted));
+            gameState.gameEvents.add_OnSectorChanged(new Action<Sector>(_mapManager.OnSectorChanged));
+            gameState.gameEvents.add_OnRunEnded(new Action<bool>(_ => _mapManager.Reset()));
             _sceneController = FindObjectOfType<SceneController>();
-            _sceneController.gameObject.AddComponent<ParagonUI>().Inject(_state);
+            _sceneController.gameObject.AddComponent<ParagonUI>().Inject();
             _gameState.SetTarget(gameState);
         }
         else
@@ -57,33 +68,23 @@ internal class Paragon : MonoBehaviour
 
     private bool CanEnableParagon()
     {
-    #if DEBUG
+#if DEBUG
         return true;
-    #else
+#else
         return _state.Unlocked && _currentSceneName == SceneUtils.GameScene && _sceneController.State == SceneController.GameState.InHub;
-    #endif
+#endif
     }
 
-    private void Update()
+    public void ToggleParagonMode()
     {
         if (CanEnableParagon())
-        {
-            if (ReInput.controllers.Keyboard.GetKeyDown(KeyCode.P))
-                _state.CurrentRunType = _state.CurrentRunType != ParagonState.RunType.PARAGON ? ParagonState.RunType.PARAGON : ParagonState.RunType.DEFAULT;
-            else if (ReInput.controllers.Keyboard.GetKeyDown(KeyCode.L))
-                _state.CurrentRunType = _state.CurrentRunType != ParagonState.RunType.ENDLESS ? ParagonState.RunType.ENDLESS : ParagonState.RunType.DEFAULT;
-        }
-        #if DEBUG
-        if (ReInput.controllers.Keyboard.GetKeyDown(KeyCode.KeypadPlus))
-            _state.ParagonLevel += ReInput.controllers.Keyboard.GetModifierKey(ModifierKey.Shift) ? 10 : 1;
-        else if (ReInput.controllers.Keyboard.GetKeyDown(KeyCode.KeypadMinus))
-            _state.ParagonLevel = Math.Max(1, _state.ParagonLevel - (ReInput.controllers.Keyboard.GetModifierKey(ModifierKey.Shift) ? 10 : 1));
-        else if (ReInput.controllers.Keyboard.GetKeyDown(KeyCode.KeypadMultiply))
-            _state.EndlessLevel += ReInput.controllers.Keyboard.GetModifierKey(ModifierKey.Shift) ? 10 : 1;
-        else if (ReInput.controllers.Keyboard.GetKeyDown(KeyCode.KeypadDivide))
-            _state.EndlessLevel = Math.Max(0, _state.EndlessLevel - (ReInput.controllers.Keyboard.GetModifierKey(ModifierKey.Shift) ? 10 : 1));
-        else if (ReInput.controllers.Keyboard.GetKeyDown(KeyCode.KeypadEnter))
-            FindObjectOfType<GameState>()?.OnPersistentStateChanged.Emit(true);
-        #endif
+            _state.CurrentRunType = _state.CurrentRunType != ParagonState.RunType.PARAGON ? ParagonState.RunType.PARAGON : ParagonState.RunType.DEFAULT;
     }
+
+    public void ToggleEndlessMode()
+    {
+        if (CanEnableParagon())
+            _state.CurrentRunType = _state.CurrentRunType != ParagonState.RunType.ENDLESS ? ParagonState.RunType.ENDLESS : ParagonState.RunType.DEFAULT;
+    }
+
 }

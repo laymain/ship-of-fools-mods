@@ -1,5 +1,5 @@
-﻿using System.Threading.Tasks;
-using HarmonyLib;
+﻿using HarmonyLib;
+using Il2Cpp;
 
 namespace ParagonMod.Patch;
 
@@ -14,10 +14,9 @@ public static class ExtendedPersistenceManager
     [HarmonyPatch(typeof(PersistenceManager), nameof(PersistenceManager.LoadGame))]
     private static class LoadGame
     {
-        private static async void Postfix(Task<GameData> __result)
+        private static void Postfix(Il2CppSystem.Threading.Tasks.Task<GameData> __result)
         {
-            GameData data = await __result;
-            AfterGameLoad?.Invoke(data);
+            __result.GetAwaiter().OnCompleted(new Action(() => AfterGameLoad?.Invoke(__result.Result)));
         }
     }
 

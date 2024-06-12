@@ -59,32 +59,13 @@ This mod extends game replayability once you have defeated the end boss by addin
 
 ### Installation
 
-* Download the latest [BepInEx 5.x](https://github.com/BepInEx/BepInEx/releases/tag/v5.4.21) (x64)
-* Extract the zip content at the root of the Ship of Fools root folder.
-> Make sure that you have not created a subfolder, it must look exactly like this:
-> ```
-> <Ship_of_Fools_Root_folder>
-> ├───BepInEx
-> ├───MonoBleedingEdge
-> ├───ShipOfFools_Data
-> └───...
-> ```
-* Run the game once and stop it, new folders should have been created in BepInEx.
-> ```
-> <Ship_of_Fools_Root_folder>
-> ├───BepInEx
-> │   ├───cache
-> │   ├───config
-> │   ├───core
-> │   ├───patchers
-> │   ├───plugins
-> ├───MonoBleedingEdge
-> ├───ShipOfFools_Data
-> └───...
-> ```
+* Install MelonLoader by following the official [Automated Installation](https://melonwiki.xyz/#/README?id=automated-installation) guide
+* Run the game once to ensure MelonLoader is installed, then stop it
 * Download the latest release of this mod on [GitHub](https://github.com/laymain/ship-of-fools-mods/releases)
 or [NexusMods](https://www.nexusmods.com//mods/2&game_id=5178)
-* Copy `ParagonMod.dll` file into the `<Ship_of_Fools_Root_folder>\BepInEx\plugins` folder.
+* Copy `ParagonMod.dll` file into the `<Ship_of_Fools_Root_folder>\Mods` folder.
+* There is actually a bug in one of the library used by MelonLoader ([BepInEx/Il2CppInterop#130](https://github.com/BepInEx/Il2CppInterop/issues/130))\
+  So you have to copy `Il2CppRewired_Core.dll` file into the `<Ship_of_Fools_Root_folder>\MelonLoader\Il2CppAssemblies` folder.
 * Start the game and enjoy this mod.
 
 ---

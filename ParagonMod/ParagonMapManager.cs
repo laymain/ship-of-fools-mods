@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using Il2Cpp;
 using ParagonMod.Patch;
 
 namespace ParagonMod;
@@ -35,7 +34,7 @@ public class ParagonMapManager
         }
         _justChangedSector = false;
         MapNode node = RandomMapNode();
-        Plugin.DefaultLogger.LogDebug($"New random map node of type {node.Type.ToString()} and subtype {node.Subtype.ToString()} with reward type {node.RewardType.ToString()} for endless mode");
+        Mod.DefaultLogger.Msg($"New random map node of type {node.Type.ToString()} and subtype {node.Subtype.ToString()} with reward type {node.RewardType.ToString()} for endless mode");
         gameState.gameEvents.NextNodeSelected(node);
         return false;
     }

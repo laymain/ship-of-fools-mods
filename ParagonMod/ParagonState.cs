@@ -1,4 +1,6 @@
-﻿namespace ParagonMod;
+﻿using Il2Cpp;
+
+namespace ParagonMod;
 
 public class ParagonState
 {
@@ -118,20 +120,20 @@ public class ParagonState
 
     public void OnRunEnded(bool victory, GameState gameState)
     {
-        Plugin.DefaultLogger.LogDebug($"Run ended: victory = {victory}");
+        Mod.DefaultLogger.Msg($"Run ended: victory = {victory}");
         if (CurrentRunType == RunType.ENDLESS)
             EndlessLevel = 0;
         if (victory)
         {
             if (!Unlocked)
             {
-                Plugin.DefaultLogger.LogDebug("Paragon unlocked");
+                Mod.DefaultLogger.Msg("Paragon unlocked");
                 Unlocked = true;
             }
 
             if (CurrentRunType == RunType.PARAGON)
             {
-                Plugin.DefaultLogger.LogDebug("Paragon level up");
+                Mod.DefaultLogger.Msg("Paragon level up");
                 ParagonLevel++;
                 gameState.OnPersistentStateChanged.Emit(true);
             }
@@ -142,7 +144,7 @@ public class ParagonState
     {
         if (CurrentRunType == RunType.ENDLESS)
         {
-            Plugin.DefaultLogger.LogDebug("Endless level up");
+            Mod.DefaultLogger.Msg("Endless level up");
             EndlessLevel++;
         }
     }

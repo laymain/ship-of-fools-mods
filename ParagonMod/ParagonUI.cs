@@ -1,13 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using TMPro;
+﻿using Il2Cpp;
+using Il2CppInterop.Runtime.Injection;
+using Il2CppTMPro;
+using MelonLoader;
 using UnityEngine;
 using UnityEngine.Localization.Components;
 using UnityEngine.UI;
 
 namespace ParagonMod;
 
+[RegisterTypeInIl2Cpp]
 public class ParagonUI : MonoBehaviour
 {
     private static readonly Options.OptionsSettings DifficultyOptionsSettings = (Options.OptionsSettings)"DifficultyChooser.Difficulty".GetHashCode();
@@ -19,9 +20,18 @@ public class ParagonUI : MonoBehaviour
     private ResourceCountText _paragonLevelText;
     private ResourceCountText _endlessLevelText;
 
-    public void Inject(ParagonState state)
+    public ParagonUI(IntPtr ptr) : base(ptr)
     {
-        _state = state;
+    }
+
+    public ParagonUI() : base(ClassInjector.DerivedConstructorPointer<ParagonUI>())
+    {
+        ClassInjector.DerivedConstructorBody(this);
+    }
+
+    public void Inject()
+    {
+        _state = Paragon._state;
         _state.OnUnlockStateChanged += SetParagonUnlockState;
         _state.OnRunTypeChanged += RunTypeChanged;
         _state.OnParagonLevelChanged += SetParagonLevel;
@@ -88,7 +98,7 @@ public class ParagonUI : MonoBehaviour
             }
             catch (Exception e)
             {
-                Plugin.DefaultLogger.LogWarning($"Could not update UI:\n\t{e}");
+                Mod.DefaultLogger.Warning($"Could not update UI:\n\t{e}");
             }
         }
     }
@@ -124,7 +134,7 @@ public class ParagonUI : MonoBehaviour
 
     public static void InjectGeneralOptions(ParagonState state, Options options)
     {
-        Plugin.DefaultLogger.LogDebug("Injecting difficulty option in menu...");
+        Mod.DefaultLogger.Msg("Injecting difficulty option in menu...");
         try
         {
             GameObject sliderDifficultyGameObject = Instantiate(options.sliderLanguage.gameObject, options.sliderLanguage.transform.parent);
@@ -141,15 +151,17 @@ public class ParagonUI : MonoBehaviour
 
             var settingsSlider = sliderDifficultyGameObject.GetComponent<OptionsSettingsSlider>();
             settingsSlider.setting = DifficultyOptionsSettings;
-            settingsSlider.settingsList = new List<string>(Enum.GetNames(typeof(ParagonDifficulty)));
+            settingsSlider.settingsList = new Il2CppSystem.Collections.Generic.List<string>();
+            foreach (string difficulty in Enum.GetNames(typeof(ParagonDifficulty)))
+                settingsSlider.settingsList.Add(difficulty);
             settingsSlider.Slider.maxValue = settingsSlider.settingsList.Count - 1;
             settingsSlider.SetSliderValue((float)state.CurrentDifficulty);
             settingsSlider.SliderUpdated();
-            settingsSlider.Slider.onValueChanged.AddListener(value =>
+            settingsSlider.Slider.onValueChanged.AddListener(new Action<float>(value =>
             {
                 state.CurrentDifficulty = (ParagonDifficulty)Mathf.RoundToInt(value);
-                Plugin.DefaultLogger.LogDebug($"Difficulty set to {state.CurrentDifficulty}");
-            });
+                Mod.DefaultLogger.Msg($"Difficulty set to {state.CurrentDifficulty}");
+            }));
 
             var selectableResolution = options.sliderResolution.GetComponent<Selectable>();
             var selectableDifficulty = options.sliderLanguage.GetComponent<Selectable>();
@@ -169,7 +181,7 @@ public class ParagonUI : MonoBehaviour
         }
         catch (Exception ex)
         {
-            Plugin.DefaultLogger.LogError(ex);
+            Mod.DefaultLogger.Error("An unexpected error has occurred", ex);
         }
     }
 }

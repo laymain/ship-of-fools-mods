@@ -1,5 +1,5 @@
-﻿using System.Linq;
-using HarmonyLib;
+﻿using HarmonyLib;
+using Il2Cpp;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
@@ -8,6 +8,7 @@ namespace ParagonMod.Patch;
 public static class ExtendedOptions
 {
     public delegate void OnOptionsStartedDelegate(Options options);
+
     public static event OnOptionsStartedDelegate OnOptionsStarted;
 
     [HarmonyPatch(typeof(Options), nameof(Options.Start))]
@@ -25,7 +26,7 @@ public static class ExtendedOptions
         // Fix SetApplyButton to set up automatically navigations
         private static bool Prefix(Options __instance, bool bOn)
         {
-            Plugin.DefaultLogger.LogDebug("Setting UI navigations...");
+            Mod.DefaultLogger.Msg("Setting UI navigations...");
             __instance.buttonApplyResolution.gameObject.SetActive(bOn);
             Selectable[] selectables = __instance.transform.Find("SubOptions/General")
                 .GetComponentsInChildren<Selectable>(false)
@@ -42,10 +43,12 @@ public static class ExtendedOptions
                     selectOnRight = selectables[i].navigation.selectOnLeft
                 };
             }
+
             if (!bOn && selectables.Length > 0)
             {
                 EventSystem.current.SetSelectedGameObject(selectables[0].gameObject);
             }
+
             return false;
         }
     }

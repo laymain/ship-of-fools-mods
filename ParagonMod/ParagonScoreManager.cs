@@ -18,7 +18,7 @@ public class ParagonScoreManager
         if (_state.CurrentRunType != ParagonState.RunType.PARAGON)
             return score;
         var newScore = score + (int)Mathf.Floor(score * _state.ParagonLevel / 20f);
-        Plugin.DefaultLogger.LogDebug($"Applying bonus to {name}: {score} -> {newScore}");
+        Mod.DefaultLogger.Msg($"Applying bonus to {name}: {score} -> {newScore}");
         return newScore;
     }
 }
